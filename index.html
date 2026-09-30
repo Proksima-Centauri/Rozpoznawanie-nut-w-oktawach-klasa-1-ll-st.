@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nauka Nut – Inteligentny Trener</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --correct: #22c55e;
+            --wrong: #ef4444;
+            --warning: #f59e0b;
+            --purple: #a855f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Fullscreen Confetti Canvas */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Streak Banner */
+        .streak-banner {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.3);
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #ffffff;
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6);
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+
+        .streak-banner.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            animation: pulseBanner 0.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseBanner {
+            from { transform: translate(-50%, -50%) scale(1); }
+            to { transform: translate(-50%, -50%) scale(1.08); }
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 760px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            color: var(--accent);
+        }
+
+        /* Nawigacja Główna (Nauka vs Test) */
+        .main-tabs {
+            display: flex;
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: bold;
+            font-size: 1.05rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .sub-mode-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn {
+            background-color: #334155;
+            color: var(--text);
+            border: 2px solid transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn.active {
+            border-color: var(--accent);
+            background-color: #0f172a;
+            color: var(--accent);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #0f172a;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            color: #fff;
+        }
+
+        /* Pasek Postępu Testu */
+        .test-progress-bar-container {
+            background-color: #0f172a;
+            border-radius: 10px;
+            height: 12px;
+            width: 100%;
+            overflow: hidden;
+            display: none;
+        }
+
+        .test-progress-fill {
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #canvas-wrapper {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        canvas#staffCanvas {
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 1.15rem;
+            min-height: 30px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--accent);
+        }
+
+        .accidental-btn-group {
+            display: flex;
+            gap: 6px;
+            background-color: #0f172a;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+        }
+
+        .acc-btn {
+            background: transparent;
+            color: var(--text);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .acc-btn.selected {
+            background-color: var(--accent);
+            color: #0f172a;
+        }
+
+        .feedback {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.15rem;
+            min-height: 28px;
+        }
+
+        .feedback.correct { color: var(--correct); }
+        .feedback.wrong { color: var(--wrong); }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            border-top: 1px solid #334155;
+            padding-top: 12px;
+        }
+
+        .mistakes-section {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .mistakes-title {
+            color: var(--warning);
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-stats-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .clear-stats-btn:hover {
+            color: var(--wrong);
+        }
+
+        .mistakes-list {
+            list-style-type: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .mistake-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e293b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--warning);
+        }
+
+        .mistake-item span strong {
+            color: var(--text);
+        }
+
+        .mistake-badge {
+            background-color: #334155;
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.82rem;
+        }
+
+        .no-mistakes {
+            color: var(--correct);
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        /* Ekran Podsumowania Testu */
+        .test-results-card {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background-color: #0f172a;
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+            text-align: center;
+        }
+
+        .result-score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.4);
+        }
+
+        .result-score-circle .big-num {
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+
+        .result-score-circle .percent {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<div id="streak-banner" class="streak-banner">🔥 5 Z RZĘDU!</div>
+
+<div class="container">
+    <h1>Nauka Nut Ze Znakami Chromatycznymi</h1>
+
+    <!-- Wybór Trybu Głównego -->
+    <div class="main-tabs">
+        <button class="tab-btn active" id="tab-learn" onclick="switchMainTab('learn')">
+            📚 Tryb Nauki
+        </button>
+        <button class="tab-btn" id="tab-test" onclick="switchMainTab('test')">
+            ⏱️ Tryb Testu (10 pytań)
+        </button>
+    </div>
+
+    <!-- Wybór Pod-typów Zadań -->
+    <div class="sub-mode-selector">
+        <button class="btn active" id="btn-exercise1" onclick="setExerciseType(1)">Rozpoznaj nutę</button>
+        <button class="btn" id="btn-exercise2" onclick="setExerciseType(2)">Wskaż miejsce</button>
+    </div>
+
+    <!-- Pasek postępu dla testu -->
+    <div class="test-progress-bar-container" id="test-progress-container">
+        <div class="test-progress-fill" id="test-progress-fill"></div>
+    </div>
+
+    <!-- Treść zadania / Instrukcja -->
+    <div class="instruction" id="instruction">Wczytywanie zadania...</div>
+
+    <!-- Obszar Pięciolinii -->
+    <div id="canvas-wrapper">
+        <canvas id="staffCanvas" width="600" height="340"></canvas>
+    </div>
+
+    <!-- Elementy Sterujące / Odpowiedzi -->
+    <div class="controls" id="controls"></div>
+
+    <!-- Komunikat Zwrotny -->
+    <div class="feedback" id="feedback"></div>
+
+    <!-- Pasek Wyników dla Nauki -->
+    <div class="score-board" id="learn-score-board">
+        <span>Punkty: <strong id="score-val" style="color:var(--text)">0</strong></span>
+        <span>Seria: <strong id="streak-val" style="color:var(--text)">0</strong></span>
+    </div>
+
+    <!-- Podsumowanie Wyników Testu (ukryte domyślnie) -->
+    <div class="test-results-card" id="test-results-card">
+        <h2 style="color: var(--accent);">Koniec Testu!</h2>
+        <div class="result-score-circle">
+            <span class="big-num" id="test-score-text">0/10</span>
+            <span class="percent" id="test-percent-text">0%</span>
+        </div>
+        <div id="test-comment" style="font-size: 1.1rem; font-weight: bold;"></div>
+        <div id="test-mistakes-summary" style="width: 100%; text-align: left;"></div>
+        <button class="btn btn-primary" style="padding: 12px 24px; font-size: 1.05rem;" onclick="startTest()">
+            🔄 Rozpocznij Nowy Test
+        </button>
+    </div>
+
+    <!-- Sekcja Najczęstszych Pomyłek dla Nauki -->
+    <div class="mistakes-section" id="learn-mistakes-section">
+        <div class="mistakes-title">
+            <span>📊 Twoje pomyłki w sesji nauki</span>
+            <button class="clear-stats-btn" onclick="resetMistakes()">wyczyść statystyki</button>
+        </div>
+        <div id="mistakes-list-container">
+            <div class="no-mistakes">Brak pomyłek – czyste konto! Tak trzymaj!</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ==========================================
+       ANIMACJA CONFETTI & STRATEGI
+       ========================================== */
+    const confettiCanvas = document.getElementById('confettiCanvas');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+
+    function resizeConfettiCanvas() {
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+    resizeConfettiCanvas();
+
+    function triggerConfetti() {
+        const colors = ['#f59e0b', '#38bdf8', '#22c55e', '#ec4899', '#a855f7', '#eab308'];
+        for (let i = 0; i < 120; i++) {
+            confettiParticles.push({
+                x: window.innerWidth / 2 + (Math.random() * 200 - 100),
+                y: window.innerHeight * 0.3,
+                vx: (Math.random() - 0.5) * 16,
+                vy: (Math.random() - 0.7) * 14 - 3,
+                size: Math.random() * 9 + 6,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rotation: Math.random() * 360,
+                rSpeed: (Math.random() - 0.5) * 12,
+                opacity: 1
+            });
+        }
+    }
+
+    function updateConfetti() {
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        for (let i = confettiParticles.length - 1; i >= 0; i--) {
+            let p = confettiParticles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.28;
+            p.vx *= 0.98;
+            p.rotation += p.rSpeed;
+            p.opacity -= 0.009;
+
+            if (p.opacity <= 0 || p.y > window.innerHeight) {
+                confettiParticles.splice(i, 1);
+                continue;
+            }
+
+            confettiCtx.save();
+            confettiCtx.translate(p.x, p.y);
+            confettiCtx.rotate((p.rotation * Math.PI) / 180);
+            confettiCtx.globalAlpha = Math.max(0, p.opacity);
+            confettiCtx.fillStyle = p.color;
+            confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.4);
+            confettiCtx.restore();
+        }
+        requestAnimationFrame(updateConfetti);
+    }
+    updateConfetti();
+
+    function showStreakBanner(text) {
+        const banner = document.getElementById('streak-banner');
+        banner.textContent = text;
+        banner.classList.add('show');
+
+        setTimeout(() => {
+            banner.classList.remove('show');
+        }, 1800);
+    }
+
+
+    /* ==========================================
+       GŁÓWNA LOGIKA DANYCH MUZYCZNYCH
+       ========================================== */
+    const NOTE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+    const OCTAVE_NAMES = [
+        'subkontra', 'kontra', 'wielka', 'mała',
+        'razkreślna', 'dwukreślna', 'trzykreślna', 'czterokreślna', 'pięciokreślna'
+    ];
+
+    const ACCIDENTALS = [
+        { id: '', symbol: '', label: 'brak' },
+        { id: '#', symbol: '♯', label: '♯ (krzyżyk)' },
+        { id: 'b', symbol: '♭', label: '♭ (bemol)' },
+        { id: '##', symbol: '𝄪', label: '𝄪 (podwójny krzyżyk)' },
+        { id: 'bb', symbol: '♭♭', label: '♭♭ (podwójny bemol)' }
+    ];
+
+    const ALL_BASE_NOTES = [];
+    for (let oct = 0; oct <= 8; oct++) {
+        for (let i = 0; i < NOTE_NAMES.length; i++) {
+            ALL_BASE_NOTES.push({
+                index: ALL_BASE_NOTES.length,
+                letter: NOTE_NAMES[i],
+                octave: oct
+            });
+            if (oct === 8) break; // Oktawa 5-kreślna zawiera tylko nutę C
+        }
+    }
+
+    // Stan Aplikacji
+    let mainTab = 'learn'; // 'learn' lub 'test'
+    let exerciseType = 1;  // 1: Rozpoznaj nutę, 2: Wskaż miejsce
+    let targetNote = null;
+    let selectedPitchIndex = null;
+    let userAccidental = '';
+    
+    // Statystyki Nauki
+    let score = 0;
+    let streak = 0;
+    const mistakeTracker = {};
+
+    // Stan Testu
+    let testState = {
+        total: 10,
+        current: 0,
+        correctCount: 0,
+        mistakes: []
+    };
+
+    const canvas = document.getElementById('staffCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function getPolishNoteName(letter, accId) {
+        if (!accId) return letter;
+        if (accId === '#') return letter + 'is';
+        if (accId === '##') return letter + 'isis';
+        if (accId === 'b') {
+            if (letter === 'E') return 'Es';
+            if (letter === 'A') return 'As';
+            if (letter === 'H') return 'B';
+            return letter + 'es';
+        }
+        if (accId === 'bb') {
+            if (letter === 'E') return 'Eses';
+            if (letter === 'A') return 'Ases';
+            if (letter === 'H') return 'Heses';
+            return letter + 'eses';
+        }
+        return letter;
+    }
+
+    function switchMainTab(tab) {
+        mainTab = tab;
+        document.getElementById('tab-learn').classList.toggle('active', tab === 'learn');
+        document.getElementById('tab-test').classList.toggle('active', tab === 'test');
+
+        const isTest = tab === 'test';
+        document.getElementById('learn-score-board').style.display = isTest ? 'none' : 'flex';
+        document.getElementById('learn-mistakes-section').style.display = isTest ? 'none' : 'block';
+        document.getElementById('test-progress-container').style.display = isTest ? 'block' : 'none';
+
+        if (isTest) {
+            startTest();
+        } else {
+            document.getElementById('test-results-card').style.display = 'none';
+            document.getElementById('canvas-wrapper').style.display = 'flex';
+            document.getElementById('controls').style.display = 'flex';
+            document.getElementById('instruction').style.display = 'block';
+            nextQuestion();
+        }
+    }
+
+    function setExerciseType(type) {
+        exerciseType = type;
+        document.getElementById('btn-exercise1').classList.toggle('active', type === 1);
+        document.getElementById('btn-exercise2').classList.toggle('active', type === 2);
+        
+        if (mainTab === 'test') {
+            startTest();
+        } else {
+            nextQuestion();
+        }
+    }
+
+    function startTest() {
+        testState = {
+            total: 10,
+            current: 1,
+            correctCount: 0,
+            mistakes: []
+        };
+
+        document.getElementById('test-results-card').style.display = 'none';
+        document.getElementById('canvas-wrapper').style.display = 'flex';
+        document.getElementById('controls').style.display = 'flex';
+        document.getElementById('instruction').style.display = 'block';
+
+        updateTestProgressUI();
+        nextQuestion();
+    }
+
+    function updateTestProgressUI() {
+        const percent = ((testState.current - 1) / testState.total) * 100;
+        document.getElementById('test-progress-fill').style.width = `${percent}%`;
+    }
+
+    function getRandomNote() {
+        const minIdx = 14; // C wielkie (C2)
+        const maxIdx = 43; // C trzykreślne (C6)
+        const validNotes = ALL_BASE_NOTES.slice(minIdx, maxIdx + 1);
+        const baseNote = validNotes[Math.floor(Math.random() * validNotes.length)];
+        
+        const accPool = ['', '', '#', 'b', '##', 'bb'];
+        const accidental = accPool[Math.floor(Math.random() * accPool.length)];
+
+        const polishName = getPolishNoteName(baseNote.letter, accidental);
+        return {
+            index: baseNote.index,
+            letter: baseNote.letter,
+            octave: baseNote.octave,
+            accidental: accidental,
+            fullName: `${polishName} ${OCTAVE_NAMES[baseNote.octave]}`
+        };
+    }
+
+    function isTrebleClef(octave) {
+        return octave >= 4;
+    }
+
+    function getNoteY(pitchIndex, isTreble) {
+        const centerY = 170;
+        const stepHeight = 6;
+
+        if (isTreble) {
+            return centerY - (pitchIndex - 34) * stepHeight;
+        } else {
+            return centerY - (pitchIndex - 22) * stepHeight;
+        }
+    }
+
+    function drawStaff(renderPitchIndex = null, renderAccidental = '') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const isTreble = isTrebleClef(targetNote.octave);
+        const lineSpacing = 12;
+        const centerY = 170;
+        const staffTopY = centerY - 2 * lineSpacing;
+        const staffBottomY = centerY + 2 * lineSpacing;
+
+        // 1. Pięciolinia
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2;
+        for (let i = -2; i <= 2; i++) {
+            const y = centerY + i * lineSpacing;
+            ctx.beginPath();
+            ctx.moveTo(40, y);
+            ctx.lineTo(560, y);
+            ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(40, staffTopY);
+        ctx.lineTo(40, staffBottomY);
+        ctx.moveTo(560, staffTopY);
+        ctx.lineTo(560, staffBottomY);
+        ctx.stroke();
+
+        // 2. Klucz
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 14px Segoe UI, sans-serif';
+        ctx.textBaseline = 'alphabetic';
+        const clefName = isTreble ? 'Klucz Wiolinowy (G)' : 'Klucz Basowy (F)';
+        ctx.fillText(clefName, 45, 30);
+
+        ctx.font = '50px serif';
+        ctx.textBaseline = 'middle';
+        if (isTreble) {
+            ctx.fillText('𝄞', 55, centerY + 5);
+        } else {
+            const lineF = staffTopY + lineSpacing;
+            ctx.fillText('𝄢', 55, lineF + 10);
+        }
+
+        // 3. Nuta
+        if (renderPitchIndex !== null) {
+            const noteY = getNoteY(renderPitchIndex, isTreble);
+            const noteX = 310;
+
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2;
+            const ledgerWidth = 36;
+
+            if (noteY < staffTopY) {
+                for (let y = staffTopY - lineSpacing; y >= noteY - 1; y -= lineSpacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(noteX - ledgerWidth / 2, y);
+                    ctx.lineTo(noteX + ledgerWidth / 2, y);
+                    ctx.stroke();
+                }
+            } else if (noteY > staffBottomY) {
+                for (let y = staffBottomY + lineSpacing; y <= noteY + 1; y += lineSpacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(noteX - ledgerWidth / 2, y);
+                    ctx.lineTo(noteX + ledgerWidth / 2, y);
+                    ctx.stroke();
+                }
+            }
+
+            if (renderAccidental) {
+                ctx.save();
+                ctx.fillStyle = '#0f172a';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+
+                if (renderAccidental === '##') {
+                    ctx.font = 'bold 22px "Segoe UI", Arial, sans-serif';
+                    ctx.fillText('𝄪', noteX - 26, noteY - 1);
+                } else if (renderAccidental === 'bb') {
+                    ctx.font = 'bold 26px serif';
+                    ctx.fillText('♭♭', noteX - 26, noteY - 2);
+                } else {
+                    const accObj = ACCIDENTALS.find(a => a.id === renderAccidental);
+                    if (accObj && accObj.symbol) {
+                        ctx.font = 'bold 28px serif';
+                        ctx.fillText(accObj.symbol, noteX - 26, noteY - 2);
+                    }
+                }
+                ctx.restore();
+            }
+
+            ctx.save();
+            ctx.translate(noteX, noteY);
+            ctx.rotate(-0.25);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 9, 6.5, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.restore();
+
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            if (noteY < centerY) {
+                ctx.moveTo(noteX - 7.5, noteY);
+                ctx.lineTo(noteX - 7.5, noteY + 38);
+            } else {
+                ctx.moveTo(noteX + 7.5, noteY);
+                ctx.lineTo(noteX + 7.5, noteY - 38);
+            }
+            ctx.stroke();
+        }
+    }
+
+    function setupControls() {
+        const controls = document.getElementById('controls');
+        controls.innerHTML = '';
+
+        if (exerciseType === 1) {
+            const nameSelect = document.createElement('select');
+            nameSelect.id = 'select-note';
+            NOTE_NAMES.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n;
+                opt.textContent = n;
+                nameSelect.appendChild(opt);
+            });
+
+            const accSelect = document.createElement('select');
+            accSelect.id = 'select-accidental';
+            ACCIDENTALS.forEach(acc => {
+                const opt = document.createElement('option');
+                opt.value = acc.id;
+                opt.textContent = acc.label;
+                accSelect.appendChild(opt);
+            });
+
+            const octSelect = document.createElement('select');
+            octSelect.id = 'select-octave';
+            OCTAVE_NAMES.forEach((name, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = name;
+                octSelect.appendChild(opt);
+            });
+
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn btn-primary';
+            submitBtn.textContent = 'Sprawdź odpowiedź';
+            submitBtn.onclick = checkAnswerMode1;
+
+            controls.appendChild(nameSelect);
+            controls.appendChild(accSelect);
+            controls.appendChild(octSelect);
+            controls.appendChild(submitBtn);
+        } else {
+            const accGroup = document.createElement('div');
+            accGroup.className = 'accidental-btn-group';
+
+            ACCIDENTALS.forEach(acc => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `acc-btn ${userAccidental === acc.id ? 'selected' : ''}`;
+                btn.textContent = acc.symbol || '♮';
+                btn.title = acc.label;
+                btn.onclick = () => {
+                    userAccidental = acc.id;
+                    document.querySelectorAll('.acc-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    if (selectedPitchIndex !== null) {
+                        drawStaff(selectedPitchIndex, userAccidental);
+                    }
+                };
+                accGroup.appendChild(btn);
+            });
+
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn btn-primary';
+            submitBtn.textContent = 'Zatwierdź położenie';
+            submitBtn.onclick = checkAnswerMode2;
+
+            controls.appendChild(accGroup);
+            controls.appendChild(submitBtn);
+        }
+    }
+
+    function nextQuestion() {
+        targetNote = getRandomNote();
+        selectedPitchIndex = null;
+        userAccidental = '';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('feedback').className = 'feedback';
+
+        setupControls();
+
+        const prefix = mainTab === 'test' ? `Pytanie ${testState.current} z ${testState.total}: ` : '';
+
+        if (exerciseType === 1) {
+            document.getElementById('instruction').textContent = `${prefix}Rozpoznaj nutę ze znakiem chromatycznym:`;
+            drawStaff(targetNote.index, targetNote.accidental);
+        } else {
+            document.getElementById('instruction').innerHTML = 
+                `${prefix}Zaznacz na pięciolinii nutę: <strong style="color:var(--accent)">${targetNote.fullName}</strong>`;
+            drawStaff(null);
+        }
+    }
+
+    function recordMistake(targetFullName, userEnteredFullName) {
+        if (mainTab === 'learn') {
+            const mistakeKey = `Pomyliłeś <strong>${targetFullName}</strong> z <strong>${userEnteredFullName}</strong>`;
+            mistakeTracker[mistakeKey] = (mistakeTracker[mistakeKey] || 0) + 1;
+            updateMistakesUI();
+        } else {
+            testState.mistakes.push({
+                target: targetFullName,
+                user: userEnteredFullName
+            });
+        }
+    }
+
+    function updateMistakesUI() {
+        const container = document.getElementById('mistakes-list-container');
+        const entries = Object.entries(mistakeTracker);
+
+        if (entries.length === 0) {
+            container.innerHTML = `<div class="no-mistakes">Brak pomyłek – czyste konto! Tak trzymaj!</div>`;
+            return;
+        }
+
+        entries.sort((a, b) => b[1] - a[1]);
+
+        let html = '<ul class="mistakes-list">';
+        entries.forEach(([key, count]) => {
+            const countLabel = count === 1 ? '1 raz' : `${count} razy`;
+            html += `
+                <li class="mistake-item">
+                    <span>${key}</span>
+                    <span class="mistake-badge">${countLabel}</span>
+                </li>
+            `;
+        });
+        html += '</ul>';
+
+        container.innerHTML = html;
+    }
+
+    function resetMistakes() {
+        for (let key in mistakeTracker) delete mistakeTracker[key];
+        updateMistakesUI();
+    }
+
+    function checkAnswerMode1() {
+        const selectedNote = document.getElementById('select-note').value;
+        const selectedAccidental = document.getElementById('select-accidental').value;
+        const selectedOctave = parseInt(document.getElementById('select-octave').value);
+
+        const isCorrect = (
+            selectedNote === targetNote.letter &&
+            selectedAccidental === targetNote.accidental &&
+            selectedOctave === targetNote.octave
+        );
+
+        handleAnswerResult(isCorrect, () => {
+            const userPolishName = getPolishNoteName(selectedNote, selectedAccidental);
+            return `${userPolishName} ${OCTAVE_NAMES[selectedOctave]}`;
+        });
+    }
+
+    function checkAnswerMode2() {
+        if (selectedPitchIndex === null) {
+            const fb = document.getElementById('feedback');
+            fb.textContent = 'Kliknij na pięciolinię, aby postawić nutę!';
+            fb.className = 'feedback wrong';
+            return;
+        }
+
+        const isCorrect = (
+            selectedPitchIndex === targetNote.index &&
+            userAccidental === targetNote.accidental
+        );
+
+        handleAnswerResult(isCorrect, () => {
+            const userBaseNote = ALL_BASE_NOTES[selectedPitchIndex];
+            const userPolishName = getPolishNoteName(userBaseNote.letter, userAccidental);
+            return `${userPolishName} ${OCTAVE_NAMES[userBaseNote.octave]}`;
+        });
+    }
+
+    function handleAnswerResult(isCorrect, getUserFullName) {
+        const fb = document.getElementById('feedback');
+
+        if (isCorrect) {
+            fb.textContent = 'Super! Poprawna odpowiedź!';
+            fb.className = 'feedback correct';
+
+            if (mainTab === 'learn') {
+                score += 10;
+                streak += 1;
+                if (streak > 0 && streak % 5 === 0) {
+                    triggerConfetti();
+                    let title = `🔥 ${streak} Z RZĘDU!`;
+                    if (streak === 10) title = `💥 10 Z RZĘDU! MISTRZ!`;
+                    if (streak >= 15) title = `👑 ${streak} Z RZĘDU! MAESTRO!`;
+                    showStreakBanner(title);
+                }
+            } else {
+                testState.correctCount++;
+            }
+        } else {
+            const userFullName = getUserFullName();
+            recordMistake(targetNote.fullName, userFullName);
+
+            fb.textContent = `Źle! Poprawna odpowiedź to: ${targetNote.fullName}`;
+            fb.className = 'feedback wrong';
+
+            if (mainTab === 'learn') {
+                streak = 0;
+            }
+        }
+
+        if (mainTab === 'learn') {
+            document.getElementById('score-val').textContent = score;
+            document.getElementById('streak-val').textContent = streak;
+            setTimeout(nextQuestion, 1800);
+        } else {
+            testState.current++;
+            updateTestProgressUI();
+
+            if (testState.current > testState.total) {
+                setTimeout(finishTest, 1800);
+            } else {
+                setTimeout(nextQuestion, 1800);
+            }
+        }
+    }
+
+    function finishTest() {
+        document.getElementById('canvas-wrapper').style.display = 'none';
+        document.getElementById('controls').style.display = 'none';
+        document.getElementById('instruction').style.display = 'none';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('test-progress-fill').style.width = '100%';
+
+        const card = document.getElementById('test-results-card');
+        card.style.display = 'flex';
+
+        const scoreText = `${testState.correctCount}/${testState.total}`;
+        const percent = Math.round((testState.correctCount / testState.total) * 100);
+
+        document.getElementById('test-score-text').textContent = scoreText;
+        document.getElementById('test-percent-text').textContent = `${percent}%`;
+
+        const commentEl = document.getElementById('test-comment');
+        if (percent === 100) {
+            commentEl.textContent = '🏆 Brawurowo! Perfekcyjny wynik!';
+            commentEl.style.color = 'var(--correct)';
+            triggerConfetti();
+        } else if (percent >= 80) {
+            commentEl.textContent = '🌟 Świetny wynik! Bardzo dobra znajomość nut!';
+            commentEl.style.color = 'var(--accent)';
+            triggerConfetti();
+        } else if (percent >= 50) {
+            commentEl.textContent = '👍 Dobry wynik, ale warto jeszcze poćwiczyć.';
+            commentEl.style.color = 'var(--warning)';
+        } else {
+            commentEl.textContent = '💪 Nie poddawaj się! Przećwicz nuty w Trybie Nauki i spróbuj ponownie.';
+            commentEl.style.color = 'var(--wrong)';
+        }
+
+        // Podsumowanie pomyłek testu
+        const summaryContainer = document.getElementById('test-mistakes-summary');
+        if (testState.mistakes.length === 0) {
+            summaryContainer.innerHTML = '<div style="color:var(--correct); font-style:italic; text-align:center;">Brak jakichkolwiek błędów w tym teście!</div>';
+        } else {
+            let html = '<div style="color:var(--warning); font-weight:bold; margin-bottom:8px;">Pomyłki w tym teście:</div><ul class="mistakes-list">';
+            testState.mistakes.forEach(m => {
+                html += `
+                    <li class="mistake-item">
+                        <span>Wymagano: <strong>${m.target}</strong>, wpisano: <strong>${m.user}</strong></span>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            summaryContainer.innerHTML = html;
+        }
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+        if (exerciseType !== 2) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleY = canvas.height / rect.height;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+
+        const isTreble = isTrebleClef(targetNote.octave);
+        const centerY = 170;
+        const stepHeight = 6;
+
+        let stepsFromCenter = Math.round((centerY - mouseY) / stepHeight);
+        let calculatedIndex = isTreble ? (34 + stepsFromCenter) : (22 + stepsFromCenter);
+        calculatedIndex = Math.max(0, Math.min(ALL_BASE_NOTES.length - 1, calculatedIndex));
+
+        selectedPitchIndex = calculatedIndex;
+        drawStaff(selectedPitchIndex, userAccidental);
+    });
+
+    nextQuestion();
+</script>
+
+</body>
+</html>
