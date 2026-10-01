@@ -36,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* Fullscreen Confetti Canvas */
         #confettiCanvas {
             position: fixed;
             top: 0;
@@ -47,7 +46,6 @@
             z-index: 9999;
         }
 
-        /* Streak Banner */
         .streak-banner {
             position: fixed;
             top: 20%;
@@ -101,7 +99,6 @@
             color: var(--accent);
         }
 
-        /* Nawigacja Główna (Nauka vs Test) */
         .main-tabs {
             display: flex;
             background-color: #0f172a;
@@ -170,7 +167,6 @@
             color: #fff;
         }
 
-        /* Pasek Postępu Testu */
         .test-progress-bar-container {
             background-color: #0f172a;
             border-radius: 10px;
@@ -343,6 +339,85 @@
             font-style: italic;
         }
 
+        /* Sekcja Konfiguracji Testu */
+        .test-config-card {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .config-group label {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: var(--accent);
+        }
+
+        /* Stylizacja Suwaka (Slider) */
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #1e293b;
+            padding: 12px 16px;
+            border-radius: 8px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .slider-header span#difficulty-label {
+            color: var(--warning);
+            font-size: 1.05rem;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #334155;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+        }
+
+        .slider-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .focus-area-box {
+            background-color: #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 4px solid var(--warning);
+            font-size: 0.9rem;
+        }
+
         /* Ekran Podsumowania Testu */
         .test-results-card {
             display: none;
@@ -396,14 +471,63 @@
             📚 Tryb Nauki
         </button>
         <button class="tab-btn" id="tab-test" onclick="switchMainTab('test')">
-            ⏱️ Tryb Testu (10 pytań)
+            ⏱ Tryb Testu
         </button>
     </div>
 
     <!-- Wybór Pod-typów Zadań -->
-    <div class="sub-mode-selector">
+    <div class="sub-mode-selector" id="sub-mode-selector">
         <button class="btn active" id="btn-exercise1" onclick="setExerciseType(1)">Rozpoznaj nutę</button>
         <button class="btn" id="btn-exercise2" onclick="setExerciseType(2)">Wskaż miejsce</button>
+    </div>
+
+    <!-- Karta Personalizacji Testu (Konfigurator przed testem) -->
+    <div class="test-config-card" id="test-config-card">
+        <h2 style="color: var(--accent); text-align: center; font-size: 1.3rem;">⚙️ Personalizacja Testu</h2>
+        
+        <div class="config-group">
+            <label for="cfg-questions-count">Liczba pytań:</label>
+            <select id="cfg-questions-count">
+                <option value="5">5 pytań (Szybki)</option>
+                <option value="10" selected>10 pytań (Standard)</option>
+                <option value="15">15 pytań (Rozszerzony)</option>
+                <option value="20">20 pytań (Wyzwanie)</option>
+            </select>
+        </div>
+
+        <div class="config-group">
+            <label>Poziom trudności (Suwak):</label>
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span>Poziom:</span>
+                    <span id="difficulty-label">1 – Łatwy</span>
+                </div>
+                <input type="range" id="cfg-difficulty-slider" min="1" max="3" value="1" oninput="updateDifficultyDescription()">
+                <div class="slider-desc" id="difficulty-desc">
+                    <strong>Łatwy:</strong> Nuty wyłącznie na pięciolinii (bez linii dodanych). Używane znaki: krzyżyk (♯) oraz bemol (♭).
+                </div>
+            </div>
+        </div>
+
+        <div class="config-group">
+            <label for="cfg-topic">Zagadnienie (Temat):</label>
+            <select id="cfg-topic">
+                <option value="all" selected>Oba klucze (Wiolinowy + Basowy naprzemiennie)</option>
+                <option value="treble">Tylko Klucz Wiolinowy (G)</option>
+                <option value="bass">Tylko Klucz Basowy (F)</option>
+            </select>
+        </div>
+
+        <div class="config-group">
+            <label>Obszary do poprawy (Zarejestrowane pomyłki):</label>
+            <div class="focus-area-box" id="focus-area-box">
+                <!-- Generowane dynamicznie na podstawie historii błędów -->
+            </div>
+        </div>
+
+        <button class="btn btn-primary" style="padding: 12px; font-size: 1.05rem; margin-top: 8px;" onclick="confirmTestConfigAndStart()">
+            🚀 Rozpocznij Test
+        </button>
     </div>
 
     <!-- Pasek postępu dla testu -->
@@ -440,7 +564,7 @@
         </div>
         <div id="test-comment" style="font-size: 1.1rem; font-weight: bold;"></div>
         <div id="test-mistakes-summary" style="width: 100%; text-align: left;"></div>
-        <button class="btn btn-primary" style="padding: 12px 24px; font-size: 1.05rem;" onclick="startTest()">
+        <button class="btn btn-primary" style="padding: 12px 24px; font-size: 1.05rem;" onclick="openTestConfig()">
             🔄 Rozpocznij Nowy Test
         </button>
     </div>
@@ -527,7 +651,6 @@
         }, 1800);
     }
 
-
     /* ==========================================
        GŁÓWNA LOGIKA DANYCH MUZYCZNYCH
        ========================================== */
@@ -553,23 +676,35 @@
                 letter: NOTE_NAMES[i],
                 octave: oct
             });
-            if (oct === 8) break; // Oktawa 5-kreślna zawiera tylko nutę C
+            if (oct === 8) break;
         }
     }
 
     // Stan Aplikacji
-    let mainTab = 'learn'; // 'learn' lub 'test'
-    let exerciseType = 1;  // 1: Rozpoznaj nutę, 2: Wskaż miejsce
+    let mainTab = 'learn'; 
+    let exerciseType = 1;  
     let targetNote = null;
     let selectedPitchIndex = null;
     let userAccidental = '';
     
-    // Statystyki Nauki
+    // Zapobieganie powtórzeniom i wywoływanie pytań podobnych po błędzie
+    let recentQuestionsQueue = [];
+    let lastMistakeNote = null;
+    let mustAskSimilar = false;
+
+    // Statystyki Nauki i Błędów
     let score = 0;
     let streak = 0;
     const mistakeTracker = {};
+    const historicalMistakes = [];
 
-    // Stan Testu
+    // Stan Testu & Konfiguracji
+    let testConfig = {
+        questionCount: 10,
+        difficulty: 1, // 1: Łatwy, 2: Średni, 3: Trudny
+        topic: 'all'
+    };
+
     let testState = {
         total: 10,
         current: 0,
@@ -579,6 +714,23 @@
 
     const canvas = document.getElementById('staffCanvas');
     const ctx = canvas.getContext('2d');
+
+    function updateDifficultyDescription() {
+        const val = parseInt(document.getElementById('cfg-difficulty-slider').value);
+        const label = document.getElementById('difficulty-label');
+        const desc = document.getElementById('difficulty-desc');
+
+        if (val === 1) {
+            label.textContent = '1 – Łatwy';
+            desc.innerHTML = '<strong>Łatwy:</strong> Nuty wyłącznie na pięciolinii (bez linii dodanych). Używane znaki: krzyżyk (♯) oraz bemol (♭).';
+        } else if (val === 2) {
+            label.textContent = '2 – Średni';
+            desc.innerHTML = '<strong>Średni:</strong> Nuty na pięciolinii oraz z liniami dodanymi. Pojawiają się podwójne krzyżyki (𝄪) i podwójne bemole (♭♭).';
+        } else {
+            label.textContent = '3 – Trudny';
+            desc.innerHTML = '<strong>Trudny:</strong> Wyłącznie nuty na liniach dodanych (górnych lub dolnych). Wszystkie znaki chromatyczne.';
+        }
+    }
 
     function getPolishNoteName(letter, accId) {
         if (!accId) return letter;
@@ -601,18 +753,23 @@
 
     function switchMainTab(tab) {
         mainTab = tab;
+        recentQuestionsQueue = [];
+        mustAskSimilar = false;
+
         document.getElementById('tab-learn').classList.toggle('active', tab === 'learn');
         document.getElementById('tab-test').classList.toggle('active', tab === 'test');
 
         const isTest = tab === 'test';
         document.getElementById('learn-score-board').style.display = isTest ? 'none' : 'flex';
         document.getElementById('learn-mistakes-section').style.display = isTest ? 'none' : 'block';
-        document.getElementById('test-progress-container').style.display = isTest ? 'block' : 'none';
 
         if (isTest) {
-            startTest();
+            openTestConfig();
         } else {
+            document.getElementById('test-config-card').style.display = 'none';
             document.getElementById('test-results-card').style.display = 'none';
+            document.getElementById('test-progress-container').style.display = 'none';
+            document.getElementById('sub-mode-selector').style.display = 'flex';
             document.getElementById('canvas-wrapper').style.display = 'flex';
             document.getElementById('controls').style.display = 'flex';
             document.getElementById('instruction').style.display = 'block';
@@ -622,29 +779,73 @@
 
     function setExerciseType(type) {
         exerciseType = type;
+        recentQuestionsQueue = [];
+        mustAskSimilar = false;
+
         document.getElementById('btn-exercise1').classList.toggle('active', type === 1);
         document.getElementById('btn-exercise2').classList.toggle('active', type === 2);
         
         if (mainTab === 'test') {
-            startTest();
+            openTestConfig();
         } else {
             nextQuestion();
         }
     }
 
+    function openTestConfig() {
+        document.getElementById('canvas-wrapper').style.display = 'none';
+        document.getElementById('controls').style.display = 'none';
+        document.getElementById('instruction').style.display = 'none';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('test-results-card').style.display = 'none';
+        document.getElementById('test-progress-container').style.display = 'none';
+        document.getElementById('sub-mode-selector').style.display = 'none';
+
+        const focusBox = document.getElementById('focus-area-box');
+        if (historicalMistakes.length === 0) {
+            focusBox.innerHTML = '<span style="color:var(--correct);">Brak zarejestrowanych błędów z poprzednich sesji! Będziesz generować pytania ze wszystkich kategorii.</span>';
+        } else {
+            const counts = {};
+            historicalMistakes.forEach(m => {
+                counts[m.target] = (counts[m.target] || 0) + 1;
+            });
+            const topMistakes = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 4);
+            
+            let html = 'Zauważono trudności przy nutach: <strong>' + topMistakes.map(m => m[0]).join(', ') + '</strong>.<br>';
+            html += '<span style="color:var(--text-muted); font-size:0.85rem;">System zwróci szczególną uwagę na te zagadnienia podczas testu.</span>';
+            focusBox.innerHTML = html;
+        }
+
+        document.getElementById('test-config-card').style.display = 'flex';
+        updateDifficultyDescription();
+    }
+
+    function confirmTestConfigAndStart() {
+        testConfig.questionCount = parseInt(document.getElementById('cfg-questions-count').value);
+        testConfig.difficulty = parseInt(document.getElementById('cfg-difficulty-slider').value);
+        testConfig.topic = document.getElementById('cfg-topic').value;
+
+        document.getElementById('test-config-card').style.display = 'none';
+        document.getElementById('sub-mode-selector').style.display = 'flex';
+        document.getElementById('canvas-wrapper').style.display = 'flex';
+        document.getElementById('controls').style.display = 'flex';
+        document.getElementById('instruction').style.display = 'block';
+        document.getElementById('test-progress-container').style.display = 'block';
+
+        startTest();
+    }
+
     function startTest() {
         testState = {
-            total: 10,
+            total: testConfig.questionCount,
             current: 1,
             correctCount: 0,
             mistakes: []
         };
+        recentQuestionsQueue = [];
+        mustAskSimilar = false;
 
         document.getElementById('test-results-card').style.display = 'none';
-        document.getElementById('canvas-wrapper').style.display = 'flex';
-        document.getElementById('controls').style.display = 'flex';
-        document.getElementById('instruction').style.display = 'block';
-
         updateTestProgressUI();
         nextQuestion();
     }
@@ -654,27 +855,131 @@
         document.getElementById('test-progress-fill').style.width = `${percent}%`;
     }
 
-    function getRandomNote() {
-        const minIdx = 14; // C wielkie (C2)
-        const maxIdx = 43; // C trzykreślne (C6)
-        const validNotes = ALL_BASE_NOTES.slice(minIdx, maxIdx + 1);
-        const baseNote = validNotes[Math.floor(Math.random() * validNotes.length)];
+    function determineClefForQuestion() {
+        if (mainTab === 'test' && testConfig.topic === 'all') {
+            return (testState.current % 2 !== 0) ? 'treble' : 'bass';
+        }
         
-        const accPool = ['', '', '#', 'b', '##', 'bb'];
-        const accidental = accPool[Math.floor(Math.random() * accPool.length)];
+        if (mainTab === 'test') {
+            if (testConfig.topic === 'treble') return 'treble';
+            if (testConfig.topic === 'bass') return 'bass';
+        }
 
-        const polishName = getPolishNoteName(baseNote.letter, accidental);
-        return {
-            index: baseNote.index,
-            letter: baseNote.letter,
-            octave: baseNote.octave,
-            accidental: accidental,
-            fullName: `${polishName} ${OCTAVE_NAMES[baseNote.octave]}`
-        };
+        return Math.random() < 0.5 ? 'treble' : 'bass';
     }
 
-    function isTrebleClef(octave) {
-        return octave >= 4;
+    function getRandomNote() {
+        const clef = determineClefForQuestion();
+        let validRanges = [];
+        let accPool = ['', '', '#', 'b', '##', 'bb'];
+
+        if (mainTab === 'test') {
+            const diff = testConfig.difficulty;
+
+            if (diff === 1) {
+                accPool = ['', '', '#', 'b'];
+                if (clef === 'treble') validRanges.push({ min: 30, max: 38 });
+                else validRanges.push({ min: 18, max: 26 });
+            } else if (diff === 2) {
+                accPool = ['', '#', 'b', '##', 'bb'];
+                if (clef === 'treble') validRanges.push({ min: 25, max: 43 });
+                else validRanges.push({ min: 13, max: 31 });
+            } else if (diff === 3) {
+                accPool = ['', '#', 'b', '##', 'bb'];
+                if (clef === 'treble') {
+                    validRanges.push({ min: 21, max: 29 });
+                    validRanges.push({ min: 39, max: 47 });
+                } else {
+                    validRanges.push({ min: 9, max: 17 });
+                    validRanges.push({ min: 27, max: 35 });
+                }
+            }
+        } else {
+            if (clef === 'treble') validRanges.push({ min: 28, max: 43 });
+            else validRanges.push({ min: 14, max: 28 });
+        }
+
+        let attempts = 0;
+        let selectedNote = null;
+
+        while (attempts < 100) {
+            attempts++;
+            let baseNote, accidental;
+
+            // Jeśli użytkownik niedawno popełnił błąd, wygeneruj pytanie PODOBNE (ta sama nazwa nuty, inny znak lub pokrewna wysokość)
+            if (mustAskSimilar && lastMistakeNote && attempts < 50) {
+                const candidates = ALL_BASE_NOTES.filter(n => {
+                    const inRange = validRanges.some(r => n.index >= r.min && n.index <= r.max);
+                    return inRange && n.letter === lastMistakeNote.letter;
+                });
+
+                if (candidates.length > 0) {
+                    baseNote = candidates[Math.floor(Math.random() * candidates.length)];
+                } else {
+                    const chosenRange = validRanges[Math.floor(Math.random() * validRanges.length)];
+                    const candidateNotes = ALL_BASE_NOTES.slice(chosenRange.min, chosenRange.max + 1);
+                    baseNote = candidateNotes[Math.floor(Math.random() * candidateNotes.length)];
+                }
+
+                // Inny znak chromatyczny niż ten, przy którym popełniono błąd
+                const otherAccs = accPool.filter(a => a !== lastMistakeNote.accidental);
+                accidental = otherAccs[Math.floor(Math.random() * otherAccs.length)] || accPool[0];
+            } else {
+                const chosenRange = validRanges[Math.floor(Math.random() * validRanges.length)];
+                const candidateNotes = ALL_BASE_NOTES.slice(chosenRange.min, chosenRange.max + 1);
+                baseNote = candidateNotes[Math.floor(Math.random() * candidateNotes.length)];
+                accidental = accPool[Math.floor(Math.random() * accPool.length)];
+            }
+
+            const qId = `${baseNote.index}_${accidental}_${clef}`;
+
+            // Sprawdzenie, czy to pytanie się nie powtórzyło
+            if (!recentQuestionsQueue.includes(qId)) {
+                recentQuestionsQueue.push(qId);
+                if (recentQuestionsQueue.length > 12) {
+                    recentQuestionsQueue.shift();
+                }
+
+                mustAskSimilar = false; // Wykorzystano szansę na podobne pytanie
+                const polishName = getPolishNoteName(baseNote.letter, accidental);
+
+                selectedNote = {
+                    index: baseNote.index,
+                    letter: baseNote.letter,
+                    octave: baseNote.octave,
+                    accidental: accidental,
+                    fullName: `${polishName} ${OCTAVE_NAMES[baseNote.octave]}`,
+                    forceClef: clef
+                };
+                break;
+            }
+        }
+
+        // Zabezpieczenie awaryjne gdyby zakres był bardzo wąski
+        if (!selectedNote) {
+            const chosenRange = validRanges[0];
+            const baseNote = ALL_BASE_NOTES[chosenRange.min];
+            const accidental = accPool[0];
+            const polishName = getPolishNoteName(baseNote.letter, accidental);
+
+            selectedNote = {
+                index: baseNote.index,
+                letter: baseNote.letter,
+                octave: baseNote.octave,
+                accidental: accidental,
+                fullName: `${polishName} ${OCTAVE_NAMES[baseNote.octave]}`,
+                forceClef: clef
+            };
+        }
+
+        return selectedNote;
+    }
+
+    function isTrebleClef(noteObj) {
+        if (noteObj && noteObj.forceClef) {
+            return noteObj.forceClef === 'treble';
+        }
+        return noteObj.octave >= 4;
     }
 
     function getNoteY(pitchIndex, isTreble) {
@@ -691,13 +996,12 @@
     function drawStaff(renderPitchIndex = null, renderAccidental = '') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const isTreble = isTrebleClef(targetNote.octave);
+        const isTreble = isTrebleClef(targetNote);
         const lineSpacing = 12;
         const centerY = 170;
         const staffTopY = centerY - 2 * lineSpacing;
         const staffBottomY = centerY + 2 * lineSpacing;
 
-        // 1. Pięciolinia
         ctx.strokeStyle = '#334155';
         ctx.lineWidth = 2;
         for (let i = -2; i <= 2; i++) {
@@ -715,7 +1019,6 @@
         ctx.lineTo(560, staffBottomY);
         ctx.stroke();
 
-        // 2. Klucz
         ctx.fillStyle = '#0f172a';
         ctx.font = 'bold 14px Segoe UI, sans-serif';
         ctx.textBaseline = 'alphabetic';
@@ -731,7 +1034,6 @@
             ctx.fillText('𝄢', 55, lineF + 10);
         }
 
-        // 3. Nuta
         if (renderPitchIndex !== null) {
             const noteY = getNoteY(renderPitchIndex, isTreble);
             const noteX = 310;
@@ -894,6 +1196,12 @@
     }
 
     function recordMistake(targetFullName, userEnteredFullName) {
+        historicalMistakes.push({ target: targetFullName, user: userEnteredFullName });
+
+        // Flaga dla systemu, aby wygenerować podobne pytanie w kolejnym ruchu
+        lastMistakeNote = { ...targetNote };
+        mustAskSimilar = true;
+
         if (mainTab === 'learn') {
             const mistakeKey = `Pomyliłeś <strong>${targetFullName}</strong> z <strong>${userEnteredFullName}</strong>`;
             mistakeTracker[mistakeKey] = (mistakeTracker[mistakeKey] || 0) + 1;
@@ -934,6 +1242,9 @@
 
     function resetMistakes() {
         for (let key in mistakeTracker) delete mistakeTracker[key];
+        historicalMistakes.length = 0;
+        mustAskSimilar = false;
+        lastMistakeNote = null;
         updateMistakesUI();
     }
 
@@ -1026,6 +1337,7 @@
         document.getElementById('canvas-wrapper').style.display = 'none';
         document.getElementById('controls').style.display = 'none';
         document.getElementById('instruction').style.display = 'none';
+        document.getElementById('sub-mode-selector').style.display = 'none';
         document.getElementById('feedback').textContent = '';
         document.getElementById('test-progress-fill').style.width = '100%';
 
@@ -1055,7 +1367,6 @@
             commentEl.style.color = 'var(--wrong)';
         }
 
-        // Podsumowanie pomyłek testu
         const summaryContainer = document.getElementById('test-mistakes-summary');
         if (testState.mistakes.length === 0) {
             summaryContainer.innerHTML = '<div style="color:var(--correct); font-style:italic; text-align:center;">Brak jakichkolwiek błędów w tym teście!</div>';
@@ -1080,7 +1391,7 @@
         const scaleY = canvas.height / rect.height;
         const mouseY = (e.clientY - rect.top) * scaleY;
 
-        const isTreble = isTrebleClef(targetNote.octave);
+        const isTreble = isTrebleClef(targetNote);
         const centerY = 170;
         const stepHeight = 6;
 
