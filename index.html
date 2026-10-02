@@ -560,6 +560,7 @@
             body.exercise-position-mode #canvas-wrapper {
                 width: 100%;
                 max-width: 100%;
+                padding: 6px;
                 justify-content: flex-start;
                 overflow-x: auto;
                 overflow-y: hidden;
@@ -568,8 +569,8 @@
             }
 
             body.exercise-position-mode canvas#staffCanvas {
-                flex: 0 0 1050px;
-                width: 1050px;
+                flex: 0 0 780px;
+                width: 780px;
                 max-width: none;
                 height: auto;
                 touch-action: pan-x pan-y;
@@ -1369,20 +1370,20 @@
             document.getElementById('instruction').innerHTML = 
                 `${prefix}Zaznacz na pięciolinii nutę: <strong style="color:var(--accent)">${targetNote.fullName}</strong>`;
             drawStaff(null);
-            centerStaffOnMobile();
+            showClefOnMobile();
         }
     }
 
-    function centerStaffOnMobile() {
+    function showClefOnMobile() {
         if (exerciseType !== 2 || window.innerWidth > 640) return;
 
         const wrapper = document.getElementById('canvas-wrapper');
         requestAnimationFrame(() => {
-            wrapper.scrollLeft = (wrapper.scrollWidth - wrapper.clientWidth) / 2;
+            wrapper.scrollLeft = 0;
         });
     }
 
-    window.addEventListener('resize', centerStaffOnMobile);
+    window.addEventListener('resize', showClefOnMobile);
 
     function recordMistake(targetFullName, userEnteredFullName) {
         historicalMistakes.push({ target: targetFullName, user: userEnteredFullName });
