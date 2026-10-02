@@ -454,6 +454,105 @@
             font-size: 0.95rem;
             opacity: 0.9;
         }
+
+        @media (max-width: 640px) {
+            body {
+                align-items: flex-start;
+                min-height: 100svh;
+                padding: 12px;
+            }
+
+            .container {
+                padding: 18px;
+                gap: 14px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+                line-height: 1.25;
+            }
+
+            .main-tabs {
+                gap: 4px;
+            }
+
+            .tab-btn {
+                min-width: 0;
+                min-height: 44px;
+                padding: 10px 6px;
+                font-size: clamp(0.82rem, 3.8vw, 1rem);
+                gap: 4px;
+            }
+
+            .sub-mode-selector {
+                flex-wrap: wrap;
+            }
+
+            .sub-mode-selector .btn {
+                flex: 1 1 40%;
+                min-height: 44px;
+                padding: 10px;
+            }
+
+            canvas#staffCanvas {
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+            }
+
+            .controls {
+                gap: 8px;
+            }
+
+            .controls > * {
+                max-width: 100%;
+            }
+
+            select,
+            .acc-btn {
+                min-height: 44px;
+            }
+
+            .score-board {
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .mistake-item {
+                gap: 8px;
+                flex-wrap: wrap;
+                overflow-wrap: anywhere;
+            }
+
+            .streak-banner {
+                max-width: calc(100vw - 24px);
+                padding: 12px 20px;
+                font-size: clamp(1.1rem, 5vw, 1.8rem);
+                white-space: normal;
+            }
+        }
+
+        @media (max-width: 380px) {
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                padding: 14px;
+                gap: 12px;
+            }
+
+            .tab-btn {
+                padding-right: 4px;
+                padding-left: 4px;
+                font-size: 0.82rem;
+            }
+
+            .test-config-card,
+            .test-results-card {
+                padding: 14px;
+            }
+        }
     </style>
 </head>
 <body>
