@@ -339,6 +339,14 @@
             font-style: italic;
         }
 
+        .site-footer {
+            padding-top: 12px;
+            border-top: 1px solid #334155;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
         /* Sekcja Konfiguracji Testu */
         .test-config-card {
             display: none;
@@ -549,6 +557,24 @@
                 height: auto;
             }
 
+            body.exercise-position-mode #canvas-wrapper {
+                width: 100%;
+                max-width: 100%;
+                justify-content: flex-start;
+                overflow-x: auto;
+                overflow-y: hidden;
+                overscroll-behavior-x: contain;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            body.exercise-position-mode canvas#staffCanvas {
+                flex: 0 0 1050px;
+                width: 1050px;
+                max-width: none;
+                height: auto;
+                touch-action: pan-x pan-y;
+            }
+
             .controls {
                 gap: 8px;
             }
@@ -727,6 +753,8 @@
             <div class="no-mistakes">Brak pomyłek – czyste konto! Tak trzymaj!</div>
         </div>
     </div>
+
+    <footer class="site-footer">Copyright Józef Grabowski &amp; GPT-6 Luna 2026</footer>
 </div>
 
 <script>
@@ -927,6 +955,7 @@
 
     function setExerciseType(type) {
         exerciseType = type;
+        document.body.classList.toggle('exercise-position-mode', type === 2);
         recentQuestionsQueue = [];
         mustAskSimilar = false;
 
@@ -1340,8 +1369,20 @@
             document.getElementById('instruction').innerHTML = 
                 `${prefix}Zaznacz na pięciolinii nutę: <strong style="color:var(--accent)">${targetNote.fullName}</strong>`;
             drawStaff(null);
+            centerStaffOnMobile();
         }
     }
+
+    function centerStaffOnMobile() {
+        if (exerciseType !== 2 || window.innerWidth > 640) return;
+
+        const wrapper = document.getElementById('canvas-wrapper');
+        requestAnimationFrame(() => {
+            wrapper.scrollLeft = (wrapper.scrollWidth - wrapper.clientWidth) / 2;
+        });
+    }
+
+    window.addEventListener('resize', centerStaffOnMobile);
 
     function recordMistake(targetFullName, userEnteredFullName) {
         historicalMistakes.push({ target: targetFullName, user: userEnteredFullName });
