@@ -569,8 +569,8 @@
             }
 
             body.exercise-position-mode canvas#staffCanvas {
-                flex: 0 0 480px;
-                width: 480px;
+                flex: 0 0 420px;
+                width: 420px;
                 max-width: none;
                 height: auto;
                 touch-action: pan-x pan-y;
@@ -1179,6 +1179,7 @@
         const centerY = 170;
         const staffTopY = centerY - 2 * lineSpacing;
         const staffBottomY = centerY + 2 * lineSpacing;
+        const staffRightX = exerciseType === 2 && window.innerWidth <= 640 ? 360 : 560;
 
         ctx.strokeStyle = '#334155';
         ctx.lineWidth = 2;
@@ -1186,15 +1187,15 @@
             const y = centerY + i * lineSpacing;
             ctx.beginPath();
             ctx.moveTo(40, y);
-            ctx.lineTo(560, y);
+            ctx.lineTo(staffRightX, y);
             ctx.stroke();
         }
 
         ctx.beginPath();
         ctx.moveTo(40, staffTopY);
         ctx.lineTo(40, staffBottomY);
-        ctx.moveTo(560, staffTopY);
-        ctx.lineTo(560, staffBottomY);
+        ctx.moveTo(staffRightX, staffTopY);
+        ctx.lineTo(staffRightX, staffBottomY);
         ctx.stroke();
 
         ctx.fillStyle = '#0f172a';
