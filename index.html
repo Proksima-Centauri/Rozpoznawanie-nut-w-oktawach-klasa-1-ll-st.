@@ -1161,7 +1161,7 @@
     }
 
     function getStaffMetrics() {
-        const enlargeMobileStaff = exerciseType === 2 && window.innerWidth <= 640;
+        const enlargeMobileStaff = window.innerWidth <= 640;
 
         return {
             lineSpacing: enlargeMobileStaff ? 22 : 12,
