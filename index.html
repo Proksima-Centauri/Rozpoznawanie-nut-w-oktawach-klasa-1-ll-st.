@@ -1176,6 +1176,76 @@
         };
     }
 
+    function drawTrebleClefSymbol(centerY, lineSpacing) {
+        const scale = lineSpacing / 12;
+        const x = 72;
+        const stroke = 2.2 * scale;
+
+        ctx.save();
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = stroke;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(x + 4 * scale, centerY - 3.2 * lineSpacing);
+        ctx.bezierCurveTo(
+            x - 18 * scale,
+            centerY - 2.2 * lineSpacing,
+            x + 20 * scale,
+            centerY + 0.4 * lineSpacing,
+            x - 2 * scale,
+            centerY + 2.6 * lineSpacing
+        );
+        ctx.bezierCurveTo(
+            x - 14 * scale,
+            centerY + 3.7 * lineSpacing,
+            x + 10 * scale,
+            centerY + 4.5 * lineSpacing,
+            x + 14 * scale,
+            centerY + 2.6 * lineSpacing
+        );
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(x + 4 * scale, centerY + 0.2 * lineSpacing, 7.2 * scale, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x + 4 * scale, centerY - 3.2 * lineSpacing);
+        ctx.lineTo(x + 4 * scale, centerY + 3.8 * lineSpacing);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawBassClefSymbol(centerY, lineSpacing) {
+        const scale = lineSpacing / 12;
+        const x = 72;
+        const lineF = centerY - lineSpacing;
+
+        ctx.save();
+        ctx.strokeStyle = '#0f172a';
+        ctx.fillStyle = '#0f172a';
+        ctx.lineWidth = 2.2 * scale;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.arc(x - 6 * scale, lineF + 1 * scale, 17 * scale, -0.85 * Math.PI, 0.85 * Math.PI, false);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 22 * scale, lineF + 3 * scale);
+        ctx.quadraticCurveTo(x - 3 * scale, lineF - 5 * scale, x + 6 * scale, lineF - 1 * scale);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(x + 20 * scale, lineF - 6 * scale, 2.5 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 20 * scale, lineF + 6 * scale, 2.5 * scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
     function getNoteY(pitchIndex, isTreble) {
         const centerY = 170;
         const { stepHeight } = getStaffMetrics();
@@ -1221,13 +1291,10 @@
         const clefName = isTreble ? 'Klucz Wiolinowy (G)' : 'Klucz Basowy (F)';
         ctx.fillText(clefName, 45, 30);
 
-        ctx.font = `${staffMetrics.clefFontSize}px serif`;
-        ctx.textBaseline = 'middle';
         if (isTreble) {
-            ctx.fillText('𝄞', 55, centerY + 5);
+            drawTrebleClefSymbol(centerY, lineSpacing);
         } else {
-            const lineF = staffTopY + lineSpacing;
-            ctx.fillText('𝄢', 55, lineF + 10);
+            drawBassClefSymbol(centerY, lineSpacing);
         }
 
         if (renderPitchIndex !== null) {
