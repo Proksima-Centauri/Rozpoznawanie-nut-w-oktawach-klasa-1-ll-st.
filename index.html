@@ -1169,10 +1169,10 @@
             strokeWidth: enlargeMobileStaff ? 3 : 2,
             clefFontSize: enlargeMobileStaff ? 64 : 50,
             ledgerWidth: enlargeMobileStaff ? 44 : 36,
-            noteRadiusX: enlargeMobileStaff ? 11 : 9,
-            noteRadiusY: enlargeMobileStaff ? 8 : 6.5,
+            noteRadiusX: enlargeMobileStaff ? 13.5 : 9,
+            noteRadiusY: enlargeMobileStaff ? 10 : 6.5,
             stemLength: enlargeMobileStaff ? 68 : 38,
-            accidentalScale: enlargeMobileStaff ? 1.25 : 1
+            accidentalScale: enlargeMobileStaff ? 1.6 : 1
         };
     }
 
@@ -1222,7 +1222,7 @@
 
         if (canRenderGlyph('𝄢', musicFont)) {
             ctx.font = musicFont;
-            ctx.fillText('𝄢', x, lineF + 8 * scale);
+            ctx.fillText('𝄢', x, lineF + 16 * scale);
         } else {
             ctx.font = `bold ${Math.round(38 * scale)}px serif`;
             ctx.fillText('F', x + 2 * scale, lineF + 2 * scale);
