@@ -569,11 +569,11 @@
             }
 
             body.exercise-position-mode canvas#staffCanvas {
-                flex: 0 0 210px;
-                width: 210px;
-                max-width: none;
+                flex: 0 0 100%;
+                width: 100%;
+                max-width: 100%;
                 height: auto;
-                touch-action: pan-x pan-y;
+                touch-action: pan-y;
             }
 
             .controls {
@@ -1179,7 +1179,7 @@
         const centerY = 170;
         const staffTopY = centerY - 2 * lineSpacing;
         const staffBottomY = centerY + 2 * lineSpacing;
-        const staffRightX = exerciseType === 2 && window.innerWidth <= 640 ? 180 : 560;
+        const staffRightX = 560;
 
         ctx.strokeStyle = '#334155';
         ctx.lineWidth = 2;
